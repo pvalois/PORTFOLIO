@@ -1,0 +1,39 @@
+---
+- name: Set credentials for database admin
+  ansible.builtin.template:
+    src: my.cnf.j2
+    dest: /root/.my.cnf
+    mode: "0700"
+
+- name: Create mysql database
+  community.mysql.mysql_db:
+    name: "{{ wordpress_mysql_db }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create mysql user
+  community.mysql.mysql_user:
+    name: "{{ wordpress_mysql_user }}"
+    password: "{{ wordpress_mysql_password }}"
+    priv: "*.*:ALL"
+    column_case_sensitive: true
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Stop mariadb
+  ansible.builtin.service:
+    name: mariadb
+    state: stopped
+  register: mariadb_stop
+  failed_when: false
+
+- name: Kill MariaDB manually if stop failled
+  ansible.builtin.command: >
+    pkill -9 mariadbd
+  when: mariadb_stop.failed
+  changed_when: true
+  failed_when: false
+
+- name: Start mariadb
+  ansible.builtin.service:
+    name: mariadb
+    state: started

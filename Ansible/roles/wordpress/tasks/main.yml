@@ -1,0 +1,16 @@
+---
+- name: Prequesites
+  ansible.builtin.import_tasks: prequesites.yml
+
+- name: Download and extract
+  ansible.builtin.import_tasks: download_and_extract_wordpress.yml
+
+- name: Database configuration
+  ansible.builtin.import_tasks: setup_database.yml
+  delegate_to: "{{ wordpress_mysql_host | regex_replace('localhost', ansible_hostname) }}"
+
+- name: Wordpress configuration
+  ansible.builtin.import_tasks: setup_wordpress.yml
+
+- name: HTTP server configuration
+  ansible.builtin.import_tasks: setup_and_restart_http_server.yml

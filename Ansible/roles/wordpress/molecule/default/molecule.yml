@@ -1,0 +1,14 @@
+---
+driver:
+  name: docker
+platforms:
+  - name: Instance
+    image: 192.168.9.62:5000/ubuforansi
+    pre_build_image: true
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      vault_password_file: ~/.vault_ansible/vault_pepiniere_pass
+  options:
+    vvv: true

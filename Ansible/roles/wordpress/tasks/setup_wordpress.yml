@@ -1,0 +1,30 @@
+---
+- name: Upload WordPress config
+  ansible.builtin.template:
+    src: wp-config.php.j2
+    dest: "{{ wordpress_path }}/wordpress/wp-config.php"
+    mode: "0644"
+
+- name: Install WP-CLI
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
+    dest: "/usr/bin/wp"
+    owner: root
+    group: root
+    mode: "755"
+
+- name: Install WordPress tables
+  ansible.builtin.shell: |
+    wp core install --allow-root \
+                    --url="{{ wordpress_home_url }}" \
+                    --title="{{ wordpress_site_title }}" \
+                    --path="{{ wordpress_path }}/wordpress" \
+                    --admin_user="{{ wordpress_admin_user }}" \
+                    --admin_password="{{ wordpress_admin_user_pass }}" \
+                    --admin_email="{{ wordpress_admin_email }}"
+  changed_when: true
+
+- name: Update WordPress Plugins
+  ansible.builtin.command: >
+    wp plugin update --all --allow-root --path="{{ wordpress_path }}/wordpress"
+  changed_when: true

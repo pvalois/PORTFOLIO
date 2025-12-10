@@ -1,0 +1,12 @@
+---
+- name: Install php and librairies
+  ansible.builtin.package:
+    name:
+      - php
+      - php-mysql
+      - php-gd
+      - php-curl
+      - php-bcmath
+      - php-imagick
+    state: present
+    update-cache: true
