@@ -1,0 +1,14 @@
+- name: Install Apache
+
+  hosts:
+    - test
+
+  tasks:
+
+    - name: Play Repositories Role
+      ansible.builtin.include_role:
+        name: repositories
+
+    - name: Play Apache Role
+      ansible.builtin.include_role:
+        name: apache2

@@ -1,0 +1,6 @@
+---
+apache2_conf: "/etc/apache2/sites-enabled/000-default.conf"
+apache2_user: www-data
+apache2_service: apache2
+
+apache2_webroot: "/var/www/html"

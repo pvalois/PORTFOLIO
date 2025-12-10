@@ -1,0 +1,161 @@
+---
+# task file for magento
+
+- name: Install prequesites
+  ansible.builtin.package:
+    name:
+      - php
+      - composer
+      - phpunit
+      - php-bcmath
+      - php-gd
+      - php-mysql
+      - php-soap
+    state: present
+
+- name: Create user magento (for composer)
+  ansible.builtin.user:
+    name: magento
+    state: present
+
+- name: Create Magento Database User
+  community.mysql.mysql_user:
+    name: "{{ magento_db_user }}"
+    password: "{{ magento_db_password }}"
+    priv: "*.*:ALL"
+    column_case_sensitive: true
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Magento Database
+  community.mysql.mysql_db:
+    name: "{{ magento_db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create /var/www/html
+  ansible.builtin.file:
+    path: "{{ magento_root_dir }}"
+    state: directory
+    owner: magento
+    mode: "755"
+
+- name: Clean old magento install if required
+  ansible.builtin.file:
+    path: "{{ magento_dir }}"
+    state: absent
+  when: magento_clean_old_install
+
+- name: Check if /var/www/html/magento exists
+  ansible.builtin.stat:
+    path: "{{ magento_dir }}"
+  register: previous_install
+
+- name: Run composer
+  when: not previous_install.stat.exists
+  block:
+    - name: Set Magento Access Keys for Composer
+      ansible.builtin.command: >
+        su - magento -c 'composer global config http-basic.repo.magento.com "{{ magento_public_key }}" "{{ magento_private_key }}"'
+      changed_when: true
+
+    - name: Create the Magento Open Source Project
+      ansible.builtin.command: >
+        su - magento -c 'composer create-project --repository=https://repo.magento.com/ magento/project-community-edition "{{ magento_dir }}"'
+      changed_when: true
+
+    - name: Set Files Permissions to g+w
+      ansible.builtin.shell: >
+        find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} \;
+      args:
+        chdir: "{{ magento_dir }}"
+      changed_when: true
+
+    - name: Set Directories Permissions to g+ws
+      ansible.builtin.shell: >
+        find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} \;
+      args:
+        chdir: "{{ magento_dir }}"
+      changed_when: true
+
+    - name: Set Files and Directories Group User
+      ansible.builtin.file:
+        dest: "{{ magento_dir }}"
+        group: "{{ magento_www_group }}"
+        recurse: true
+
+    - name: Set Permission u+x to bin/magento
+      ansible.builtin.file:
+        path: "{{ magento_dir }}/bin/magento"
+        mode: u+x
+
+- name: Install Magento
+  ansible.builtin.shell: |
+    php bin/magento setup:install \
+    --base-url="{{ magento_base_url }}" \
+    --db-host="{{ magento_db_host }}" \
+    --db-name="{{ magento_db_name }}" \
+    --db-user="{{ magento_db_user }}" \
+    --db-password="{{ magento_db_password }}" \
+    --backend-frontname="{{ magento_backend_frontname }}" \
+    --admin-firstname="{{ magento_admin_firstname }}" \
+    --admin-lastname="{{ magento_admin_lastname }}" \
+    --admin-email="{{ magento_admin_email }}" \
+    --admin-user="{{ magento_admin_user }}" \
+    --admin-password="{{ magento_admin_password }}" \
+    --language="{{ magento_language }}" \
+    --currency="{{ magento_currency }}" \
+    --timezone="{{ magento_timezone }}" \
+    --use-rewrites="{{ magento_use_rewrites }}" \
+    --elasticsearch-host="192.168.9.74" \
+    --elasticsearch-port="9200"
+  args:
+    chdir: "{{ magento_dir }}"
+  changed_when: true
+
+- name: Change Magento Deployment Mode
+  ansible.builtin.command: php bin/magento deploy:mode:set "{{ magento_mode }}"
+  args:
+    chdir: "{{ magento_dir }}"
+  when: magento_mode != 'default'
+  changed_when: true
+
+- name: Deploy the Static Content
+  ansible.builtin.command: php bin/magento setup:static-content:deploy -f
+  args:
+    chdir: "{{ magento_dir }}"
+  changed_when: true
+
+- name: Run Reindexer
+  ansible.builtin.command: php bin/magento indexer:reindex
+  args:
+    chdir: "{{ magento_dir }}"
+  changed_when: true
+
+- name: Flush Cache
+  ansible.builtin.command: php bin/magento cache:flush
+  args:
+    chdir: "{{ magento_dir }}"
+  changed_when: true
+
+- name: Enable Cache
+  ansible.builtin.command: php bin/magento cache:enable
+  args:
+    chdir: "{{ magento_dir }}"
+  changed_when: true
+
+- name: Add Magento to Cron
+  ansible.builtin.command: php bin/magento cron:install
+  args:
+    chdir: "{{ magento_dir }}"
+  failed_when: false
+  changed_when: true
+
+- name: Install nginx conf for magento
+  ansible.builtin.template:
+    src: magento.conf.j2
+    dest: /etc/nginx/sites-enabled/magento
+    owner: root
+    group: root
+    mode: "755"
+  notify: Restart nginx

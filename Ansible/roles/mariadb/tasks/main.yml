@@ -1,0 +1,72 @@
+---
+# tasks file for mariadb-server
+
+- name: Import gpg key
+  ansible.builtin.get_url:
+    url: https://supplychain.mariadb.com/mariadb-keyring-2019.gpg
+    dest: /etc/apt/trusted.gpg.d/mariadb.gpg
+    mode: "755"
+    checksum: sha256:0caed67ec619ef635a48edee9abca6882a32e4864a97444616f0335ccd3669ec
+  when: mariadb_use_ppa
+
+- name: Add mariadb repository
+  ansible.builtin.template:
+    src: mardiadb.list.j2
+    dest: /etc/apt/sources.list.d/mariadb.list
+    mode: "0755"
+  when: mariadb_use_ppa
+
+- name: Update package cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_distribution in ["Ubuntu", "Debian"]
+
+- name: Install mariadb server
+  ansible.builtin.apt:
+    name:
+      - "mariadb-server-{{ mariadb_version }}"
+      - "mariadb-client-{{ mariadb_version }}"
+      - python3-pymysql
+      - python3-mysqldb
+    state: present
+    dpkg_options: "force-confold,force-confdef"
+  when: mariadb_use_ppa
+
+- name: Install distrib mariadb server
+  ansible.builtin.apt:
+    name:
+      - mariadb-server
+      - mariadb-client
+      - python3-pymysql
+      - python3-mysqldb
+    state: present
+    dpkg_options: "force-confold,force-confdef"
+  when: not mariadb_use_ppa
+
+- name: Start mariadb server
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: true
+
+- name: Dump root Password
+  ansible.builtin.debug:
+    msg: "MySQL new Password : {{ mariadb_admin_password }}"
+
+- name: Update mysql root password
+  community.mysql.mysql_user:
+    name: "root"
+    password: "{{ mariadb_admin_password }}"
+    column_case_sensitive: true
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Push .my.cnf
+  ansible.builtin.template:
+    src: my.cnf.j2
+    dest: "{{ item.path }}"
+    mode: "600"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+  loop:
+    - { path: "/root/.my.cnf", owner: "root", group: "root" }
+    - { path: "/var/lib/mysql/.my.cnf", owner: "mysql", group: "mysql" }

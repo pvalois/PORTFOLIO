@@ -1,0 +1,35 @@
+---
+# defaults file for magento
+
+magento_mysql_root_password: ""
+
+magento_server_hostname: ""
+magento_root_dir: /var/www/html/
+magento_dir: "{{ magento_root_dir }}/magento"
+magento_www_group: www-data
+magento_mode: default
+magento_clean_old_install: false
+
+magento_db_host: localhost
+magento_db_name: magento
+magento_db_user: magento
+magento_db_password: magento
+
+# Must be set in hosts_var/[targetname]
+
+# magento_public_key: MAGENTO_PUBLIC_KEY
+# magento_private_key: MAGENTO_PRIVATE_KEY
+
+magento_base_url: http://yourdomain.co.uk/
+magento_use_rewrites: 1
+
+magento_language: en_GB
+magento_timezone: Europe/London
+magento_currency: GBP
+
+magento_backend_frontname: admin
+magento_admin_firstname: admin
+magento_admin_lastname: admin
+magento_admin_email: admin@admin.com
+magento_admin_user: admin
+magento_admin_password: admin123

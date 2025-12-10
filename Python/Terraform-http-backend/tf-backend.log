@@ -1,0 +1,23 @@
+[2025-12-04 18:15:07.156943] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:15:11.148792] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:15:14.030337] [project=xenomorph] GET state
+[2025-12-04 18:15:14.030337] Payload size : 272 bytes
+[2025-12-04 18:19:01.093405] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:19:03.646512] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:19:06.601049] [project=xenomorph] GET state
+[2025-12-04 18:19:06.601049] Payload size : 5984 bytes
+[2025-12-04 18:20:52.421210] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:20:54.939512] [project=xenomorph] GET state
+[2025-12-04 18:20:54.939512] Payload size: 5984 bytes
+[2025-12-04 18:23:23.269880] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:23:25.706582] [project=xenomorph] GET state
+[2025-12-04 18:23:25.706582] Payload size: 72 bytes
+[2025-12-04 18:24:34.000814] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:24:36.587693] [project=xenomorph] GET state
+[2025-12-04 18:24:36.587693] Exception encountered: the JSON object must be str, bytes or bytearray, not dict
+[2025-12-04 18:24:53.071361] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:24:55.884392] [project=xenomorph] GET state
+[2025-12-04 18:24:55.884392] Exception encountered: 'dict' object has no attribute 'read'
+[2025-12-04 18:25:51.562098] Terraform multi-project backend running on http://0.0.0.0:9961
+[2025-12-04 18:25:54.534529] [project=xenomorph] GET state
+[2025-12-04 18:25:54.534529] Payload size: 7833 bytes

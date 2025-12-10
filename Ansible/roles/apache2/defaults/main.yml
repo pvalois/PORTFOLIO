@@ -1,0 +1,5 @@
+---
+apache2_name: "{{ ansible_hostname }}"
+apache2_port: 80
+apache2_aliases: ["localhost"]
+apache2_admin: pvalois@hotmail.fr

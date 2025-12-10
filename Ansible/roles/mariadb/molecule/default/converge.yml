@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  become: true
+
+  tasks:
+
+    - name: Install mariadb
+      ansible.builtin.import_role:
+        name: mariadb

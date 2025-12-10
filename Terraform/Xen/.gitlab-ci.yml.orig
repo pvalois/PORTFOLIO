@@ -1,0 +1,84 @@
+# Définit l'image Docker à utiliser pour tous les jobs du pipeline
+image:
+  name: hashicorp/terraform:latest
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+# Définit les étapes (stages) du pipeline CI/CD
+stages:
+  - init
+  - plan
+  - apply
+
+# Variables globales à ajuster
+variables:
+  # Chemin vers le répertoire des manifestes après clonage (Nom du dossier du repo externe)
+  MANIFESTS_REPO_DIR: "terraform-config-repo" 
+  # URL du dépôt contenant vos fichiers Terraform (.tf)
+  MANIFESTS_REPO_URL: "https://gitlab.com/votre_utilisateur/votre_repo_manifests.git" 
+  # Branche à cloner
+  MANIFESTS_REPO_BRANCH: "main" 
+  # Dossier où Terraform doit travailler
+  TF_ROOT: $MANIFESTS_REPO_DIR
+  # Le backend (e.g., S3, GitLab HTTP, etc.) doit être configuré séparément via des variables ou un fichier backend.tf
+
+# --------------------------------------------------------------------------
+# Fonctions communes (Scripts avant chaque job)
+# --------------------------------------------------------------------------
+.clone_manifests: &clone_manifests
+  - echo "Clonage des manifestes depuis $MANIFESTS_REPO_URL sur la branche $MANIFESTS_REPO_BRANCH..."
+  # Utilise la variable CI_JOB_TOKEN pour l'authentification Git, nécessaire pour cloner un repo privé
+  - git clone --branch $MANIFESTS_REPO_BRANCH $MANIFESTS_REPO_URL $MANIFESTS_REPO_DIR
+  - cd $TF_ROOT
+
+# Cache pour les plugins Terraform et l'état d'initialisation
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .terraform/
+
+# --------------------------------------------------------------------------
+# Etape 1: Initialisation (Téléchargement des providers et modules)
+# --------------------------------------------------------------------------
+init:
+  stage: init
+  script:
+    - *clone_manifests # Exécute le script de clonage
+    - terraform init -input=false
+  # Sauvegarde le dossier .terraform/ pour les étapes suivantes
+  artifacts:
+    paths:
+      - $TF_ROOT/.terraform/
+    expire_in: 1 day
+
+# --------------------------------------------------------------------------
+# Etape 2: Planification (Vérification des changements)
+# --------------------------------------------------------------------------
+plan:
+  stage: plan
+  script:
+    - *clone_manifests
+    - terraform plan -input=false -out="planfile"
+  # Sauvegarde le fichier de plan pour la phase d'application
+  artifacts:
+    paths:
+      - $TF_ROOT/planfile
+    expire_in: 1 day
+  dependencies:
+    - init
+
+# --------------------------------------------------------------------------
+# Etape 3: Application (Déploiement)
+# --------------------------------------------------------------------------
+apply:
+  stage: apply
+  script:
+    - *clone_manifests
+    - terraform apply -input=false "planfile"
+  # L'étape Apply est manuelle et ne s'exécute que sur la branche 'main'
+  when: manual
+  only:
+    - main
+  dependencies:
+    - plan

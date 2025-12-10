@@ -1,0 +1,8 @@
+---
+# handlers file for magento
+
+- name: Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+    use: service

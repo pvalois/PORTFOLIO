@@ -1,0 +1,61 @@
+- name: Lister les leases DHCP sur Freebox
+
+  hosts: localhost
+
+  gather_facts: false
+
+  tasks:
+    - name: Récupérer les leases DHCP
+      pepiniere.freebox.list_dhcp:
+        api_url: {{ freebox_ip }}
+        filter_status: online
+      register: dhcp_leases
+
+    - name: Récupérer les IP reachables de teknomage
+      set_fact:
+        ips: >-
+          {{
+            dhcp_leases.leases
+            | selectattr('default_name', 'equalto', 'ldap-serv')
+            | map(attribute='l3connectivities')
+            | map('selectattr', 'reachable', 'equalto', True)
+            | map('map', attribute='addr')
+            | map('list')
+            | list
+            | flatten
+          }}
+
+    - name: Afficher le résultat
+      debug:
+        var: ips 
+
+    - name: Générer dictionnaire hostname -> IP reachables
+      set_fact:
+        ips_by_host: >-
+          {{
+            dict(
+              dhcp_leases.leases
+              | map(
+                  attribute='default_name'
+                )
+              | zip(
+                  dhcp_leases.leases
+                  | map(attribute='l3connectivities')
+                  | map('selectattr', 'reachable', 'equalto', True)
+                  | map('map', attribute='addr')
+                  | map('list')
+                )
+            )
+          }}
+
+    - name: Afficher le résultat
+      debug: 
+        var: ips_by_host
+
+    - name: Affecter une lease statique 
+      pepiniere.freebox.static_lease:
+        api_url: {{ freebox_ip }}
+        api_token: {{ freebox_token }}
+        client_name: xencloak
+        client_mac_address: "BC:24:11:04:DB:D4"
+        client_ip: 192.168.1.218

@@ -1,0 +1,85 @@
+# Définit l'image Docker à utiliser pour tous les jobs du pipeline
+image:
+  name: hashicorp/terraform:latest
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+# Définit les étapes (stages) du pipeline CI/CD
+stages:
+  - init
+  - test
+  - plan
+  - apply
+
+variables:
+  TF_IN_AUTOMATION: "true"
+  TF_HTTP_ADDRESS: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}"
+  TF_HTTP_LOCK_ADDRESS: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}/lock"
+  TF_HTTP_UNLOCK_ADDRESS: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}/lock"
+  TF_HTTP_USERNAME: "gitlab-ci-token"
+  TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
+  TF_HTTP_LOCK_METHOD: "POST"
+  TF_HTTP_UNLOCK_METHOD: "DELETE"
+
+# --------------------------------------------------------------------------
+# Fonctions communes (Scripts avant chaque job)
+# --------------------------------------------------------------------------
+
+# Cache pour les plugins Terraform et l'état d'initialisation
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .terraform/
+
+init:
+  stage: init
+  script:
+    # Ceci remplace la nécessité d'utiliser les nombreux flags -backend-config
+    #- echo "machine ${CI_SERVER_HOST} login ${TF_HTTP_USERNAME} password ${TF_HTTP_PASSWORD}" > ~/.netrc
+    - terraform init -reconfigure
+    - terraform state pull > remote.tfstate
+    - cat remote.tfstate
+  artifacts:
+    paths:
+      - .terraform/
+    expire_in: 1 day
+
+test:
+  stage: test
+  script:
+    #- echo "machine ${CI_SERVER_HOST} login ${TF_HTTP_USERNAME} password ${TF_HTTP_PASSWORD}" > ~/.netrc
+    - terraform validate
+  dependencies:
+    - init
+
+plan:
+  stage: plan
+  script:
+    #- echo "machine ${CI_SERVER_HOST} login ${TF_HTTP_USERNAME} password ${TF_HTTP_PASSWORD}" > ~/.netrc
+    - terraform init -reconfigure -lock=false
+    - terraform plan -input=false -out="planfile" | tee plan_output.txt
+  artifacts:
+    paths:
+      - planfile
+      - plan_output.txt
+    expire_in: 1 day
+  dependencies:
+    - test
+
+apply:
+  stage: apply
+  script:
+    #- echo "machine ${CI_SERVER_HOST} login ${TF_HTTP_USERNAME} password ${TF_HTTP_PASSWORD}" > ~/.netrc
+    - terraform init -reconfigure -lock=false
+    - if grep -q "No changes. Infrastructure is up-to-date." plan_output.txt
+    - then
+    -   echo "Aucun changement détecté. Forçage de l'échec du job pour stopper 'apply'."
+    -   exit 0
+    - fi
+    - terraform apply -input=false "planfile"
+  when: manual
+  only:
+    - main
+  dependencies:
+    - plan

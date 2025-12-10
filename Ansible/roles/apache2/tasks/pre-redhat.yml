@@ -1,0 +1,7 @@
+- name: Install apache php and mysql
+  ansible.builtin.package:
+    name:
+      - httpd
+      - php-cli
+      - php-pecl-zendopcache
+    state: present

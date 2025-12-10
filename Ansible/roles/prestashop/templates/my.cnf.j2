@@ -1,0 +1,13 @@
+### Ansible
+
+[client]
+host={{ prestashop_db_server }}
+user=root
+{% if mariadb_admin_password is defined %}
+password={{ mariadb_admin_password }}
+{% endif %}
+{% if mysql_admin_password is defined %}
+password={{ mysql_admin_password }}
+{% endif %}
+
+

@@ -1,0 +1,6 @@
+### Ansible
+
+[client]
+host={{ mariadb_listen_address | default('0.0.0.0') }}
+user=root
+password={{ mariadb_admin_password }}

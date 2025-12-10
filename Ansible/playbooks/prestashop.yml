@@ -1,0 +1,19 @@
+---
+- name: Install
+
+  hosts:
+    - test
+
+  tasks:
+    - name: Install Mariadb
+      ansible.builtin.import_role:
+        name: mariadb
+      delegate_to: "{{ prestashop_db_server | regex_replace('localhost', ansible_hostname) }}"
+
+    - name: Install Nginx
+      ansible.builtin.import_role:
+        name: nginx
+
+    - name: Install Prestashop
+      ansible.builtin.include_role:
+        name: prestashop

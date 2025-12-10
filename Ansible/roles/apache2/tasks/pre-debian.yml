@@ -1,0 +1,14 @@
+---
+- name: Install apache and php-mysql
+  ansible.builtin.package:
+    name:
+      - apache2
+      - libapache2-mod-php
+      - php
+      - php-gmp
+      - php-mbstring
+      - php-gd
+      - php-curl
+      - php-pear
+      - php-mysql
+    state: present

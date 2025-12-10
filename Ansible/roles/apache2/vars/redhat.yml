@@ -1,0 +1,6 @@
+---
+apache2_conf: "/etc/httpd/conf.d/000-default.conf"
+apache2_user: apache
+apache2_service: httpd
+
+apache2_webroot: "/var/www/html"

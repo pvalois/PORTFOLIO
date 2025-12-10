@@ -1,0 +1,16 @@
+Metadata-Version: 2.2
+Name: configlocator
+Version: 0.0.1
+Summary: A simple lib to check location file in common locations
+Home-page: 
+Author: Pascal Valois
+Author-email: pascal.valois@free.fr
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: requires-python
+Dynamic: summary

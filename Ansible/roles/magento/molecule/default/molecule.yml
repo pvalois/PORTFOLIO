@@ -1,0 +1,17 @@
+---
+driver:
+  name: docker
+platforms:
+  #- name: instance
+  #  image: 192.168.9.62:5000/ds-ubuntu:0.2
+  #  pre_build_image: true
+  - name: Instance2
+    image: ubuntu/python:3.8-20.04_edge
+    pre_build_image: true
+provisioner:
+  name: ansible
+  options:
+    vvv: true
+verifier:
+  #name: ansible
+  name: testinfra

@@ -1,0 +1,21 @@
+---
+# tasks file for magento
+
+- name: Check if previous install
+  ansible.builtin.stat:
+    path: "{{ magento_dir }}/.installed"
+  register: is_installed
+
+- name: Proceed if no previous install
+  ansible.builtin.import_tasks:
+    file: install.yml
+  when: not is_installed.stat.exists
+
+- name: Create install lock
+  ansible.builtin.template:
+    src: installed.j2
+    dest: "{{ magento_dir }}/.installed"
+    owner: root
+    group: root
+    mode: "600"
+  when: not is_installed.stat.exists

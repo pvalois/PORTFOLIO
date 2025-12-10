@@ -1,0 +1,6 @@
+setup.py
+configlocator/__init__.py
+configlocator.egg-info/PKG-INFO
+configlocator.egg-info/SOURCES.txt
+configlocator.egg-info/dependency_links.txt
+configlocator.egg-info/top_level.txt

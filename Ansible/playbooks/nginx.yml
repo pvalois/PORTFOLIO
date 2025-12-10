@@ -1,0 +1,11 @@
+---
+- name: Install Nginx
+
+  hosts:
+    - test
+
+  tasks:
+
+    - name: Play nginx role
+      ansible.builtin.include_role:
+        name: nginx

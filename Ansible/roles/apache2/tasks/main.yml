@@ -1,0 +1,26 @@
+- name: Set distribution specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family | lower }}.yml"
+
+- name: Install distribution specific packages
+  ansible.builtin.include_tasks:
+    file: "pre-{{ ansible_os_family | lower }}.yml"
+
+- name: Create webroot
+  ansible.builtin.file:
+    path: "{{ apache2_webroot }}"
+    state: directory
+    owner: "{{ apache2_user }}"
+    group: "{{ apache2_user }}"
+    mode: "0755"
+
+- name: Install template configuration
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ apache2_user }}"
+    group: "{{ apache2_user }}"
+    mode: "0755"
+  with_items:
+    - {src: "000-default.conf.j2", dest: "{{ apache2_conf }}"}
+    - {src: "index.html.j2", dest: "{{ apache2_webroot }}/index.html"}
+  notify: Restart Apache

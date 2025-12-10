@@ -1,0 +1,42 @@
+#cloud-config
+hostname: ${CLOUD_CONFIG_HOSTNAME}
+
+disable_user: true 
+ssh_pwauth: true
+disable_root: false
+chpasswd:
+  expire: False
+
+users:
+  - name: admin
+    passwd: "$y$j9T$G.7w0A1OhxJPirGoUH/If1$FqcuLXREguWPF9Hm5IMp7vw7bvzsKhv7wOfb20wh17A" 
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: false
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMH31hJ09NNiOSzdw5Ydygq5ex+J+C6FOH6i6pLr7nKC
+
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp6: false
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - curl
+  - vim
+  - git
+  - htop
+  - net-tools
+  - python3
+  - python3-pip
+
+runcmd:
+  - [ sh, -c, "echo 'Mise à jour du hostname par runcmd...'" ]
+  - [ hostnamectl, set-hostname, ${CLOUD_CONFIG_HOSTNAME} ] 
+  - [ sh, -c, "echo '127.0.0.1 {{ CLOUD_CONFIG_HOSTNAME }}' >> /etc/hosts" ]

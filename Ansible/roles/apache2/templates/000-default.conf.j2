@@ -1,0 +1,17 @@
+<VirtualHost *:{{ apache2_port }}>
+    ServerAdmin {{ apache2_admin }}
+    ServerName {{ apache2_name }}
+{% for item in apache2_aliases %}
+    ServerAlias {{ item }}
+{% endfor %}
+
+    DocumentRoot /var/www/html
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    #CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Directory />
+      AllowOverride All
+    </Directory>
+</VirtualHost>
+

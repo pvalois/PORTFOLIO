@@ -1,0 +1,113 @@
+---
+# tasks file for prestashop
+
+- name: Set credentials for database admin
+  ansible.builtin.template:
+    src: my.cnf.j2
+    dest: /root/.my.cnf
+    mode: "0700"
+
+- name: Create mysql database
+  delegate_to: "{{ prestashop_db_server | regex_replace('localhost', ansible_hostname) }}"
+  community.mysql.mysql_db:
+    name: "{{ prestashop_db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  notify: Restart mysql
+
+- name: Create mysql user
+  delegate_to: "{{ prestashop_db_server | regex_replace('localhost', ansible_hostname) }}"
+  community.mysql.mysql_user:
+    name: "{{ prestashop_db_user }}"
+    password: "{{ prestashop_db_password }}"
+    priv: "*.*:ALL"
+    column_case_sensitive: true
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  notify: Restart mysql
+
+- name: Check if Prestashop was previously installed
+  ansible.builtin.stat:
+    path: "{{ prestashop_root_path }}/{{ prestashop_check_file_name }}"
+  register: prestashop_status
+
+- name: Install Prestashop
+  when: not prestashop_status.stat.exists
+  block:
+    - name: Create prestashop directory
+      ansible.builtin.file:
+        path: "{{ prestashop_root_path }}"
+        owner: www-data
+        group: www-data
+        mode: "755"
+        state: directory
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "Version : {{ prestashop_url_download }}"
+
+    - name: Downloading Prestashop archive
+      ansible.builtin.unarchive:
+        src: "{{ prestashop_url_download }}"
+        dest: "{{ prestashop_root_path }}"
+        remote_src: true
+        owner: www-data
+        group: www-data
+
+    - name: Unarchiving Zip archive
+      ansible.builtin.unarchive:
+        src: "{{ prestashop_root_path }}/prestashop.zip"
+        dest: "{{ prestashop_root_path }}"
+        remote_src: true
+        owner: www-data
+        group: www-data
+
+    - name: Installation of Prestashop
+      ansible.builtin.shell: |
+        php index_cli.php \
+               --domain="{{ prestashop_domain }}" \
+               --db_create="{{ prestashop_db_create }}" \
+               --db_clear="{{ prestashop_db_clear }}" \
+               --db_server="{{ prestashop_db_server }}" \
+               --db_name="{{ prestashop_db_name }}" \
+               --db_user="{{ prestashop_db_user }}" \
+               --db_password="{{ prestashop_db_password }}" \
+               --engine="{{ prestashop_db_engine }}" \
+               --prefix="{{ prestashop_db_prefix }}" \
+               --language="{{ prestashop_language }}" \
+               --country="{{ prestashop_country }}" \
+               --timezone="{{ prestashop_timezone }}" \
+               --firstname="{{ prestashop_firstname }}" \
+               --lastname="{{ prestashop_lastname }}" \
+               --password="{{ prestashop_password }}" \
+               --email="{{ prestashop_email }}" \
+               --newsletter="{{ prestashop_newsletter }}"
+      args:
+        chdir: "{{ prestashop_root_path }}/install"
+      changed_when: true
+
+    - name: Delete Zip archive
+      ansible.builtin.file:
+        state: absent
+        path: "/tmp/prestashop.zip"
+
+    - name: Delete installation directory of PrestaShop to prevent overwriting
+      ansible.builtin.file:
+        path: "{{ prestashop_root_path }}/install"
+        state: absent
+
+    - name: Rename admin path for Prestashop
+      ansible.builtin.command: "mv {{ prestashop_root_path }}/admin {{ prestashop_root_path }}/{{ prestashop_admin_folder_name }}"
+      changed_when: true
+
+    - name: Create a file to indicate that Prestashop is installed
+      ansible.builtin.copy:
+        content: "PrestaShop {{ prestashop_version }} is installed. Do not remove this file unless you want a full new installation"
+        dest: "{{ prestashop_root_path }}/{{ prestashop_check_file_name }}"
+        mode: "0644"
+
+- name: Add configuration to nginx
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-enabled/prestashop
+    mode: "0644"
+  notify: Restart nginx

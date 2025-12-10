@@ -1,0 +1,16 @@
+---
+# defaults file for mariadb-server
+
+mariadb_use_ppa: false
+mariadb_repo_version: 10.6
+mariadb_version: 10.6
+
+mariadb_release: |-
+  {%- if ansible_distribution | lower == "ubuntu" -%}
+  kinetic
+  {%- else -%}
+  {{ ansible_distribution_release | lower }}
+  {%- endif -%}
+
+mariadb_listen_address: 0.0.0.0
+mariadb_admin_password: ThisIsAWeakPassword

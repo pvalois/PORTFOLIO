@@ -1,0 +1,28 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+
+  vars:
+    expected_content: "Magento, Inc."
+
+  pre_tasks:
+    - name: "Load testor variables"
+      ansible.builtin.include_vars:
+        file: "/home/valois/ansible/inventory/host_vars/testor"
+
+  tasks:
+    - name: Get index.html
+      ansible.builtin.uri:
+        url: http://localhost
+        method: GET
+        return_content: true
+        headers:
+          host: "{{ server_hostname }}"
+      register: this
+      failed_when: "expected_content not in this.content"
+
+    - name: Debug results
+      ansible.builtin.debug:
+        var: this.content

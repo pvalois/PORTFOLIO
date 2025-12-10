@@ -1,0 +1,24 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  become: true
+
+  pre_tasks:
+    - name: "Load testor variables"
+      ansible.builtin.include_vars:
+        file: "/home/valois/ansible/inventory/host_vars/testor"
+
+  tasks:
+    - name: Deploy Mysql
+      ansible.builtin.import_role:
+        name: mariadb
+
+    - name: Deploy Nginx
+      ansible.builtin.import_role:
+        name: nginx
+
+    - name: Deploy Magento
+      ansible.builtin.import_role:
+        name: magento

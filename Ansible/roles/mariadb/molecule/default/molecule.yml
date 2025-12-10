@@ -1,0 +1,13 @@
+---
+driver:
+  name: docker
+platforms:
+  - name: Instance
+    image: jrei/systemd-ubuntu:22.04
+    privileged: true
+    command: /sbin/init
+    pre_build_image: true
+provisioner:
+  name: ansible
+  options:
+    vvv: true
