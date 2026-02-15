@@ -1,8 +1,9 @@
 # Ansible Collection - pepiniere.freebox
 
-A sample colletion to demonstrate plugin write for ansible, base on freebox dhcp lease administration
+A sample colletion to demonstrate **plugin writing for ansible**,
+based on **freebox** dhcp lease administration
 
-Sample:
+Example: 
 
 ```yaml
 - name: Lister les leases DHCP sur Freebox
