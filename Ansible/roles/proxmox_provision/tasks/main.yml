@@ -1,0 +1,80 @@
+- name: Clone VMs
+  community.proxmox.proxmox_kvm:
+    node: "{{ proxmox_provision_node }}"
+    api_user: root@pam
+    api_host: "{{ proxmox_provision_host }}"
+    api_password: "{{ proxmox_provision_password }}"
+
+    name: "{{ item.name }}"
+    newid: "{{ item.newid }}"
+    state: present
+
+    clone: "{{ item.clone }}"
+    vmid: "{{ item.vmid }}"
+    full: "{{ item.fullclone | default(true) }}"
+
+    #storage: "{{ item.storage | default('Store1') }}"
+    #format: "{{ item.format | default('qcow2') }}"
+    timeout: "{{ item.timeout | default(1200) }}"
+
+    ide:
+      ide2: "{{ item.storage | default('Store1') }}:cloudinit"
+
+    ciuser: "{{ item.ciuser | default('ubuntu') }}"
+    cipassword: "{{ item.cipassword | default('ubuntu') }}"
+    sshkeys: "{{ item.sshkeys }}"
+
+    ipconfig:
+      ipconfig0: "ip=dhcp"
+
+  loop: "{{ proxmox_provision_clone | selectattr('state', 'equalto', 'present') | list }}"
+
+- name: Create CTs
+  community.general.proxmox:
+    api_user: root@pam
+    api_password: "{{ proxmox_provision_password }}"
+    api_host: "{{ proxmox_provision_host }}"
+    node: "{{ proxmox_provision_node }}"
+
+    hostname: "{{ item.name }}"
+    vmid: "{{ item.vmid }}"
+    state: present
+
+    unprivileged: "{{ item.unprivileged | default(1) | int }}"
+
+    ostemplate: "{{ item.ostemplate }}"
+    storage: "{{ item.storage | default('Store1') }}"
+    disk: "{{ item.storage | default('Store1') }}:{{ item.disk | default(4) }}"
+    password: "{{ item.password }}"
+
+    netif: |
+      {"net0":"name=eth0,bridge=vmbr0,ip=dhcp"}
+
+    timeout: "{{ item.timeout | default(600) }}"
+  loop: "{{ proxmox_provision_ct | selectattr('state', 'equalto', 'present') | list }}"
+
+- name: Create VMs
+  community.proxmox.proxmox_kvm:
+    api_user: root@pam
+    api_host: "{{ proxmox_provision_host }}"
+    api_password: "{{ proxmox_provision_password }}"
+    node: "{{ proxmox_provision_node }}"
+
+    name: "{{ item.name }}"
+    vmid: "{{ item.vmid }}"
+    state: present
+
+    cores: "{{ item.cores | default(1) }}"
+    memory: "{{ item.memory | default(1024) }}"
+    ostype: "{{ item.ostype | default('l26') }}"
+    onboot: "{{ item.onboot | default(false) }}"
+
+    format: "{{ item.format | default('qcow') }}"
+
+    net: "{{ item.net | default({}) }}"
+    virtio: "{{ item.virtio | default({}) }}"
+    scsi: "{{ item.scsi | default({}) }}"
+    sata: "{{ item.sata | default({}) }}"
+    ide: "{{ item.ide | default({}) }}"
+
+  loop: "{{ proxmox_provision_vm | selectattr('state', 'equalto', 'present') | list }}"

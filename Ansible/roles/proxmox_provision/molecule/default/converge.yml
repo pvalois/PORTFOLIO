@@ -1,0 +1,11 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+
+  become: true
+
+  tasks:
+    - name: Deploy
+      ansible.builtin.include_role:
+        name: proxmox_provision

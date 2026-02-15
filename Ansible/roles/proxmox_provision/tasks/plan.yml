@@ -1,0 +1,14 @@
+- name: Clone VMs
+  ansible.builtin.debug:
+    var: item
+  loop: "{{ proxmox_provision_clone | selectattr('state', 'equalto', 'present') | list }}"
+
+- name: Create CTs
+  ansible.builtin.debug:
+    var: item
+  loop: "{{ proxmox_provision_ct | selectattr('state', 'equalto', 'present') | list }}"
+
+- name: Create VMs
+  ansible.builtin.debug:
+    var: item
+  loop: "{{ proxmox_provision_vm | selectattr('state', 'equalto', 'present') | list }}"

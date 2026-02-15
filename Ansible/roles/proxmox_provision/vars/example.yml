@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for proxmox_provision
+
+proxmox_provision_clone:
+  - name: boffafeet
+    state: present
+
+    clone: arbitrary_name
+    vmid: 90000
+    newid: 905
+
+    storage: Store1
+    format: qcow2
+
+    ciuser: valois
+    cipassword: valois
+    sshkeys: 
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMH31hJ09NNiOSzdw5Ydygq5ex+J+C6FOH6i6pLr7nKC valois@teknomage"
+
+    timeout: 1200
+
+proxmox_provision_vm:
+  - name: Vm-test
+    vmid: 904
+    state: absent
+
+    cores: 2
+    memory: 2048
+
+    ostype: l26
+    onboot: false
+
+    format: qcow
+
+    net:
+      net0: "virtio,bridge=vmbr0,rate=200"
+
+    virtio:
+      virtio0: "local-lvm:20,format=raw"
+
+    ide:
+      ide2: "local:iso/debian-12.9.0-amd64.iso,media=cdrom"
+
+proxmox_provision_ct:
+  - name: Caillou
+    state: absent
+
+    vmid: 103
+
+    ostemplate: local:vztmpl/rockylinux-10-default_20251001_amd64.tar.xz
+    password: "{{ proxmox_provision_lxc_root_password }}"
+
+    storage: local-lvm
+
+    timeout: 600

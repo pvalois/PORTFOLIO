@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: MIT-0
+---
+
+proxmox_provision_clone:
+  - name: drago
+    state: present
+
+    clone: arbitrary_name
+    vmid: 90000
+    newid: 251
+    fullclone: false
+
+    ciuser: valois
+    cipassword: valois
+    sshkeys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMH31hJ09NNiOSzdw5Ydygq5ex+J+C6FOH6i6pLr7nKC valois@teknomage"
+
+    timeout: 1200
+
+  - name: goyle
+    state: present
+
+    clone: arbitrary_name
+    vmid: 90000
+    newid: 252
+    fullclone: false
+
+    ciuser: valois
+    cipassword: valois
+    sshkeys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMH31hJ09NNiOSzdw5Ydygq5ex+J+C6FOH6i6pLr7nKC valois@teknomage"
+
+    timeout: 1200
+
+proxmox_provision_vm: []
+proxmox_provision_ct: []
