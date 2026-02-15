@@ -1,4 +1,11 @@
 ---
+- name: Load distribution specifics variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_facts['distribution'] }}.yml"
+    - "{{ ansible_facts['os_family'] }}.yml"
+    - "default.yml"
+
 - name: Install nginx package
   ansible.builtin.package:
     name:
@@ -28,20 +35,28 @@
     backup: true
   notify: Restart nginx
 
+- name: Create sites-enabled
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Push default site configuration
   ansible.builtin.template:
     src: "default.j2"
     mode: "0644"
     owner: root
     group: root
-    dest: /etc/nginx/sites-available/default
-    backup: true
+    dest: /etc/nginx/sites-enabled/default
+    backup: false # Backups confuse nginx
   notify: Restart nginx
 
 - name: Push first site content
   ansible.builtin.copy:
-    src: "{{ lookup('first_found', findme) }}"
-    dest: /var/www
+    src: "{{ lookup('first_found', dict(files=findme, paths=[role_path + '/files'])) }}/"
+    dest: /var/www/html
     mode: "0644"
   vars:
     findme:
