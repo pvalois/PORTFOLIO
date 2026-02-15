@@ -35,6 +35,7 @@ terraform {
     unlock_method  = "POST"
   }
 }
+```
 
 ## Détails du stockage
 
