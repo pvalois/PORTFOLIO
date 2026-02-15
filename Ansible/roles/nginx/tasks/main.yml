@@ -23,7 +23,6 @@
   ansible.builtin.service:
     name: nginx
     state: started
-    use: service
 
 - name: Push nginx.conf template
   ansible.builtin.template:
