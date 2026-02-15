@@ -1,7 +1,4 @@
-Role Name
-=========
-
-Magento E-Commerce installation reole
+## Magento E-Commerce installation role
 
 Requirements
 ------------
