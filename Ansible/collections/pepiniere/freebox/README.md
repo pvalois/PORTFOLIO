@@ -77,7 +77,7 @@ make install
 make check
 make check-doc
 
-#or 
+# OR 
 
 make all
 ```
