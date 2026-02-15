@@ -13,11 +13,11 @@
     state: present
 
 - name: Install php-fpm package if required
+  when: "nginx_fastcgi_php | default (false)"
   ansible.builtin.package:
     name:
       - php-fpm
     state: present
-  when: "nginx_fastcgi_php is defined and nginx_fastcgi_php"
 
 - name: Start nginx
   ansible.builtin.service:
