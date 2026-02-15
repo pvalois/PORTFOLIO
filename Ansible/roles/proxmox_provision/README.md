@@ -1,7 +1,10 @@
-Role de provision virtual machines in proxmox : 
+---
+title: "Role to provision virtual machines in proxmox"
+---
 
 Playbook : 
 
+```yaml
 - name: Provision vms
 
   hosts:
@@ -12,9 +15,12 @@ Playbook :
   - name: Play proxmox_provision role
     ansible.builtin.include_role:
       name: proxmox_provision
+```
 
 Usage:  
 
-  ansible-playbook playbook.yml -e @vars/profile.yaml
+```bash
+ansible-playbook playbook.yml -e @vars/profile.yaml
+```
 
 Where vars/profile.yaml describe vms to be create (samples provided).
