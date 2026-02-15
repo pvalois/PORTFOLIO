@@ -69,3 +69,15 @@ Example:
         client_ip: 192.168.1.218
 ``` 
 
+Usage: 
+
+```bash
+make build
+make install 
+make check
+make check-doc
+
+#or 
+
+make all
+```
