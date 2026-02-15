@@ -1,0 +1,45 @@
+stages:
+- init
+- test
+- publish
+
+pip install:
+    stage: init
+    image: python:3.7-alpine
+    script:
+    - pip install virtualenv
+    - mkdir -p env
+    - cd env
+    - '[ -d venv ] && echo "Already exist" || virtualenv venv'
+    - source venv/bin/activate
+    - cd ..
+    - apk add --update alpine-sdk
+    - pip install -r requirements.txt
+
+    artifacts:
+        paths:
+        - env/
+        expire_in: 1 hour
+    cache:
+        paths:
+          - env/
+
+python test with coverage:
+    stage: test
+    image: python:3.7-alpine
+    script:
+      - pip install virtualenv
+      - source env/venv/bin/activate
+      - apk add --update alpine-sdk
+      - python -m pytest --cov-fail-under ${COVERAGE_LIBRARY_THRESHOLD} --cov=corecomponent/ tests/
+
+publishing on wiidii's pypi:
+    stage: publish
+    image: python:3.7-alpine
+    script:
+      - pip install virtualenv
+      - source env/venv/bin/activate
+      - python setup.py sdist bdist_wheel
+      - twine upload --username ${PYPI_NEXUS_USER} --password ${PYPI_NEXUS_PASS} --repository-url ${PYPI_NEXUS_FOR_UPLOAD} dist/*
+    only:
+      - master

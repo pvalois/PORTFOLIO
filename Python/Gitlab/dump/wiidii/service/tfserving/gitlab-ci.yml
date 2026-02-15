@@ -1,0 +1,59 @@
+stages:
+- package
+- deploy
+
+docker build/push:
+    stage: package
+    image: docker:latest
+    services:
+        - docker:dind
+    variables:
+        DOCKER_DRIVER: overlay2
+    script:
+        - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+        - docker build --build-arg PYPI_IP_STAG=${PYPI_IP_STAG} --build-arg PYPI_PORT_STAG=${PYPI_PORT_STAG} -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} .
+        - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+    only:
+        - master
+    except:
+        - tags
+
+sullust staging:
+  stage: deploy
+  image:
+    name: alpine
+  script:
+    - apk add --no-cache curl
+    - curl -X POST "http://${TRAEFIK_BACK_URL_STAG}/sullust-saas/api/deployment?dockerImage=${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}&environment=${ENVIRONMENT_STAG}"
+  environment: 
+    name: staging
+  dependencies: []
+  artifacts:
+    name: "dump-${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    paths:
+      - dump/
+    expire_in: 1 hour
+  only:
+    - master
+  except:
+    - tags
+  retry: 2
+
+sullust production:
+  stage: deploy
+  image:
+    name: alpine
+  script:
+    - apk add --no-cache curl
+    - curl -X POST "http://${TRAEFIK_BACK_URL_STAG}/sullust-saas/api/deployment?dockerImage=${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}&environment=${ENVIRONMENT_PROD}"
+  environment: 
+    name: production
+  dependencies: []
+  artifacts:
+    name: "dump-${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    paths:
+      - dump/
+    expire_in: 1 hour
+  only:
+    - tags
+  retry: 2

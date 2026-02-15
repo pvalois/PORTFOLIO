@@ -1,0 +1,14 @@
+image: registry.gitlab.com/wldhx/gitlab-ci-react-native-android:master
+
+stages:
+  - install
+
+npm install:
+  stage: install
+  script:
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 10 min
+  retry: 2

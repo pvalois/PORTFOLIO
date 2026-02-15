@@ -3,7 +3,7 @@
 import requests
 from lib.credentials import *
 
-(GITLAB_URL, PRIVATE_TOKEN) = get_token("server")
+(GITLAB_URL, PRIVATE_TOKEN) = get_token("tek")
 headers = {
     "PRIVATE-TOKEN": PRIVATE_TOKEN
 }

@@ -5,7 +5,7 @@ import requests
 from gitlab import *
 from lib.credentials import *
 
-(GITLAB_URL,PRIVATE_TOKEN)=get_token("server")
+(GITLAB_URL,PRIVATE_TOKEN)=get_token("tek")
 print (GITLAB_URL)
 
 try: 

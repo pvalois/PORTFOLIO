@@ -1,0 +1,63 @@
+stages:
+  - install
+  - build
+  - test_coverage_lint
+  - publish
+
+before_script:
+  - apk add curl
+  - echo "//tool.wiidii.com:8081/repository/npm-group/:_authToken=$NPM_TOKEN" > $HOME/.npmrc
+  - echo "email=contact@wiidii.com" >> $HOME/.npmrc
+  - echo "always-auth=true" >> $HOME/.npmrc
+  - echo "_auth=$NPM_AUTH" >> $HOME/.npmrc
+  - yarn config set registry http://tool.wiidii.com:8081/repository/npm-group/
+  - echo "email contact@wiidii.com" >> $HOME/.yarnrc
+  - echo "username admin" >> $HOME/.yarnrc
+
+yarn install:
+  stage: install
+  image: node:lts-alpine
+  script:
+    - yarn install
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 10 min
+  retry: 2
+
+yarn run build:
+  stage: build
+  image: node:lts-alpine
+  script:
+    - yarn run build
+  artifacts:
+    paths:
+      - packages/
+    expire_in: 10 min
+  retry: 2
+
+yarn run test:
+  stage: test_coverage_lint
+  image: node:lts-alpine
+  script:
+    - yarn run test
+  artifacts:
+    paths:
+      - __reports__/
+  retry: 2
+
+yarn run lint:
+  stage: test_coverage_lint
+  image: node:lts-alpine
+  script:
+    - yarn run lint
+  retry: 2
+
+yarn run publish:
+  stage: publish
+  image: node:lts-alpine
+  script:
+    - yarn run publish
+  only:
+    - master
+  retry: 2

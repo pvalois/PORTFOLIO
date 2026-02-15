@@ -8,7 +8,7 @@ from rich.console import Console
 
 table = Table(title="Population test")
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,oauth_token=git_token)
 
 

@@ -14,7 +14,7 @@ def chunked_join(lst, size=5):
     blocks = [",".join(strs[i:i+size]) for i in range(0, len(strs), size)]
     return ("\n".join(blocks))
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,oauth_token=git_token)
 
 table = Table(box=box.MINIMAL)

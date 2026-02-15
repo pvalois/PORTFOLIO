@@ -1,0 +1,46 @@
+stages:
+  - build
+  - package
+  - push
+
+dotnet check:
+  stage: build
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2-alpine
+  script: 
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet tool install --add-source ${NUGET_NEXUS_SERVER_PRIVATE_URL} -g ProjectChecker
+    - ProjectChecker
+  except:
+    - tags
+
+dotnet publish:
+  stage: build
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2-alpine
+  script:
+    - dotnet publish -c Debug --source ${NUGET_NEXUS_SERVER_PRIVATE_URL} --source ${NUGET_SERVER_PUBLIC_URL}
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    untracked: true
+    expire_in: 10 min
+  retry: 2
+
+dotnet pack:
+  stage: package
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2-alpine
+  artifacts:
+    name: "package-${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    untracked: true
+    expire_in: 10 min
+  only:
+    - master
+  script:
+    - dotnet pack -c Debug --source ${NUGET_NEXUS_SERVER_PRIVATE_URL} --source ${NUGET_SERVER_PUBLIC_URL} --no-build
+
+nuget push:
+  stage: push
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2-alpine
+  script:
+    - find -path *.nupkg | xargs -i dotnet nuget push {} --api-key ${NUGET_NEXUS_API_KEY} -s ${NUGET_NEXUS_SERVER_PRIVATE_URL}
+  only:
+    - master
+  retry: 2    

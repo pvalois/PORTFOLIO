@@ -7,7 +7,7 @@ from dumper import dump
 from pprint import pprint
 from lib.credentials import *
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 
 def get_gitlab_ci(project):
   try:

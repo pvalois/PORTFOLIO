@@ -6,7 +6,7 @@ import json
 import requests
 from lib.credentials import *
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,private_token=git_token)
 final_result = []
 

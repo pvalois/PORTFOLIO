@@ -4,7 +4,7 @@ import gitlab
 from lib.credentials import *
 import argparse
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 
 parser = argparse.ArgumentParser(description="Delete Gitlab Runner")
 parser.add_argument('-i', '--runnerid', type=str, required=True, help='Identifiant du runner')

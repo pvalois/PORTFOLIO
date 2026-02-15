@@ -10,7 +10,7 @@ from gitlab import *
 from lib.credentials import *
 import datetime
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,private_token=git_token)
 
 head = {'Authorization' : 'Bearer '+git_token,

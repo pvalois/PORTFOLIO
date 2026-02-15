@@ -1,0 +1,79 @@
+stages:
+  - build
+  - test_coverage
+  - package
+  - push
+
+dotnet check:
+  stage: build
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2-alpine
+  script: 
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet tool install --add-source ${NUGET_NEXUS_SERVER_PRIVATE_URL} -g ProjectChecker
+    - ProjectChecker
+  except:
+    - tags
+  retry: 2
+
+dotnet publish:
+  stage: build
+  image: microsoft/dotnet:latest
+  script:
+    - dotnet publish -c Debug --source ${NUGET_SERVER_PRIVATE_URL} --source ${NUGET_NEXUS_SERVER_PRIVATE_URL} --source ${NUGET_SERVER_PUBLIC_URL}
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    untracked: true
+    expire_in: 10 min
+  retry: 2
+
+dotnet vstest:
+  stage: test_coverage
+  image: microsoft/dotnet:latest
+  script:
+    - dotnet vstest $(find -path *\publish\*.UnitTests.dll)
+  retry: 2
+
+minicover:
+  stage: test_coverage
+  image: microsoft/dotnet:latest
+  script:
+    - dotnet build --source ${NUGET_SERVER_PRIVATE_URL} --source ${NUGET_NEXUS_SERVER_PRIVATE_URL} --source ${NUGET_SERVER_PUBLIC_URL}
+    - mkdir coverage
+    - cd coverage
+    - echo '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>netcoreapp2.2</TargetFramework></PropertyGroup><ItemGroup><DotNetCliToolReference Include="MiniCover" Version="'${MINICOVER_VERSION}'" /></ItemGroup></Project>' > MiniCover.csproj
+    - dotnet restore
+    - dotnet minicover instrument --workdir ../ --assemblies test/**/bin/Debug/**/*.dll --sources src/**/*.cs --exclude-sources src/*/Startup.cs --exclude-sources src/*/Program.cs
+    - cd ..
+    - for project in test/**/*.UnitTests.csproj; do dotnet test --no-build $project; done
+    - cd coverage
+    - dotnet minicover report --workdir ../ --threshold ${COVERAGE_LIBRARY_THRESHOLD}
+    - dotnet minicover htmlreport --workdir ../ --threshold ${COVERAGE_LIBRARY_THRESHOLD}
+  artifacts:
+    name: "coverage-${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    paths:
+      - coverage-html/
+    expire_in: 10 min
+  retry: 2
+
+dotnet pack:
+  stage: package
+  image: microsoft/dotnet:latest
+  artifacts:
+    name: "package-${CI_JOB_NAME}-${CI_PROJECT_NAME}-${CI_COMMIT_SHA}"
+    untracked: true
+    expire_in: 10 min
+  script:
+    - dotnet restore --source ${NUGET_SERVER_PRIVATE_URL} --source ${NUGET_NEXUS_SERVER_PRIVATE_URL} --source ${NUGET_SERVER_PUBLIC_URL}
+    - dotnet pack -c Debug --no-dependencies --no-restore --no-build 
+  only:
+    - master
+  retry: 2
+
+dotnet nuget push:
+  stage: push
+  image: microsoft/dotnet:latest
+  script:
+    - find -path *.nupkg | xargs -i dotnet nuget push {} --api-key ${NUGET_NEXUS_API_KEY} -s ${NUGET_NEXUS_SERVER_PRIVATE_URL}
+  only:
+    - master
+  retry: 2

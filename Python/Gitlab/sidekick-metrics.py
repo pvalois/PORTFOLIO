@@ -7,7 +7,7 @@ import json
 import sys
 from lib.credentials import *
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,oauth_token=git_token)
 
 print(">> queue metrics")

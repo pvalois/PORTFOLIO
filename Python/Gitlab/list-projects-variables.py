@@ -7,7 +7,7 @@ import json,requests
 from rich.table import Table,box
 from rich.console import Console
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,private_token=git_token)
 
 def get_variables(url):

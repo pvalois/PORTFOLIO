@@ -7,12 +7,12 @@ import requests
 import json
 import argparse
 
-(git_server,git_token)=get_token("server")
+(git_server,git_token)=get_token("tek")
 gl = Gitlab(git_server,private_token=git_token)
 
 parser = argparse.ArgumentParser( description="Liste et nettoie les artefacts des Jobs GitLab anciens.")
 parser.add_argument( 'projects', type=str, help="Chemin des projets, séparés par des virgules.")
-parser.add_argument('-b', '--branch', type=str, default="master", help="Chemin des projets, séparés par des virgules.")
+parser.add_argument('-b', '--branch', type=str, default="main", help="Chemin des projets, séparés par des virgules.")
 args = parser.parse_args()
 
 projects=args.projects.split(",")

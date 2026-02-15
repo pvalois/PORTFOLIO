@@ -1,0 +1,3 @@
+include:
+  - project: 'wiidii/tool/dotnet-ci'
+    file: '/gitlab/library.gitlab-ci.yml'
