@@ -21,4 +21,4 @@ Usage:
 ansible-playbook playbook.yml -e @vars/profile.yaml
 ```
 
-Where vars/profile.yaml describe vms to be create (samples provided).
+Where **vars/profile.yaml** describe vms to be created (samples provided).
