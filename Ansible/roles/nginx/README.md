@@ -1,4 +1,4 @@
-## Role to install apache web server
+## Role to install nginx web server
 
 This role provides : 
 
