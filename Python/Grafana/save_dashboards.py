@@ -1,14 +1,13 @@
 #!/usr/bin/env python3 
 
-from grafana_api.grafana_face import GrafanaFace
 
 import json
 import requests
 import os
-import configparser
+from grafana_api.grafana_face import GrafanaFace
+from configlocator import configlocator
 
-config=configparser.ConfigParser()
-config.read('credentials.ini')
+config=configlocator("grafana.ini")
 cred=config['dockerized']
 
 HOST=cred["hostname"]+":"+cred["port"]

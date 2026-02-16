@@ -1,23 +1,37 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3
 
 from grafana_api.grafana_face import GrafanaFace
-import json
-import configparser
+from configlocator import configlocator
+from rich.console import Console
+from rich.table import Table, box
 
-config=configparser.ConfigParser()
-config.read('credentials.ini')
-cred=config['dockerized']
+config = configlocator("grafana.ini")
+cred = config['dockerized']
 
-hostname=cred["hostname"]
-port=cred["port"]
-apikey=cred["apikey"]
+hostname = cred["hostname"]
+port = cred["port"]
+apikey = cred["apikey"]
 
-grafana_api = GrafanaFace(auth=apikey,
-                          host=hostname+":"+port)
+base_url = f"http://{hostname}:{port}"
 
-print (json.dumps(grafana_api.search.search_dashboards(),indent=2))
+grafana_api = GrafanaFace(
+    auth=apikey,
+    host=f"{hostname}:{port}"
+)
 
-try:
-  print (json.dumps(grafana_api.search.search_datasources(),indent=2))
-except:
-  pass
+dashboards = grafana_api.search.search_dashboards()
+
+console = Console()
+table = Table(box=box.SIMPLE_HEAVY)
+
+table.add_column("Nom du Dashboard", style="cyan", no_wrap=True)
+table.add_column("URL complète", style="green")
+
+for dash in dashboards:
+    name = dash.get("title", "N/A")
+    relative_url = dash.get("url", "")
+    full_url = f"{base_url}{relative_url}"
+    table.add_row(name, full_url)
+
+console.print(table)
+
