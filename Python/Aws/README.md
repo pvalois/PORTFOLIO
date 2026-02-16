@@ -1,4 +1,4 @@
-Collection de scripts permettant 
+## Collection de scripts permettant 
 
 - Administration d'aws (liste des instances, security groups, subnets et volumes)
 - Aide a la creation de vm (liste des ami) 
@@ -6,6 +6,9 @@ Collection de scripts permettant
 - Craws et upload sur Bucket S3
 - Scripts autres comme le chaos engineering (stupid_monkey)
 
-Dans Examples, des script trouvés sur le net que je n'ai pas encore retravaillé.
+Ces scripts sont basés sur une librairie aws_local jointe se basant sur une configuration *aws.ini*,
+qui en cas d'absence fallback sur les credentials ~/.aws
+
+
 
 

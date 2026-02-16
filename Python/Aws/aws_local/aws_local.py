@@ -1,24 +1,31 @@
 import boto3
 from botocore.client import Config
 from configlocator import *
+import os
 
-config=configlocator("aws.ini")
-
-c=config['pepiniere']
-endpoint=c['endpoint']
-access_key=c['access_key_id']
-secret=c['access_key_secret']
-region=c['region']
-
+def get_custom_config(section=None):
+    """Tente de charger la config depuis aws.ini."""
+    try:
+        # On cherche le fichier aws.ini
+        config = configlocator("aws.ini")
+        c = config[section]
+        return {
+            'endpoint_url': c.get('endpoint'),
+            'aws_access_key_id': c.get('access_key_id'),
+            'aws_secret_access_key': c.get('access_key_secret'),
+            'region_name': c.get('region'),
+        }
+    except (FileNotFoundError, KeyError, Exception):
+        # Si le fichier n'existe pas ou que la section 'pepiniere' est absente
+        return {}
 
 def client(service_name):
-    """Retourne un client boto3 configuré pour LocalStack."""
+    custom_params = get_custom_config("pepiniere")
 
+    # Si custom_params est vide, boto3 cherchera automatiquement 
+    # dans ~/.aws/credentials ou les variables d'environnement.
     return boto3.client(
         service_name,
-        endpoint_url=endpoint,
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret,
-        region_name=region,
-        config=Config(signature_version='v4')
+        config=Config(signature_version='v4'),
+        **custom_params
     )
