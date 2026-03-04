@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-ns-creation
+spec:
+  validationFailureAction: Audit
+  background: false
+  rules:
+  - name: block-namespace-creation
+    match:
+      resources:
+        kinds: ["Namespace"]
+    preconditions:
+      all:
+        - key: "{{ request.userInfo.username }}"
+          operator: NotIn
+          value: 
+            - "admin"
+            - "kube:admin"
+            - "system:admin"
+    validate:
+      message: "Namespace creation is restricted to cluster admins only."
+      deny: {}

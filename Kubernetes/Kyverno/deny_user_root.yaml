@@ -1,0 +1,32 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-run-as-root
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-non-root-containers
+      match:
+        resources:
+          kinds:
+            - Pod
+            - Deployment
+            - StatefulSet
+            - DaemonSet
+            - Job
+            - CronJob
+      exclude:
+        resources:
+          namespaces:
+            - kube-system
+            - metallb-system
+            - argocd-system
+            - kyverno-system
+      validate:
+        message: "Containers must not run as root (must set runAsNonRoot: true)."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  runAsNonRoot: true

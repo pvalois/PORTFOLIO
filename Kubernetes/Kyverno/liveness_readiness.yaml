@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-probes-existence
+spec:
+  validationFailureAction: Enforce
+  rules:
+  - name: check-probes-exist
+    match:
+      resources:
+        kinds:
+            - Pod
+            - Deployment
+            - StatefulSet
+            - DaemonSet
+    exclude:
+      resources:
+        namespaces:
+          - argocd-system
+          - kyvervo-systemœ
+          - metallb-system
+    validate:
+      message: "Les pods doivent définir livenessProbe et readinessProbe."
+      pattern:
+        spec:
+          containers:
+          - livenessProbe: "?*"
+            readinessProbe: "?*"
+

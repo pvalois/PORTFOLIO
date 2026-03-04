@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: audit-no-resource-limits
+spec:
+  validationFailureAction: Audit
+  rules:
+  - name: check-resource-limits
+    match:
+      resources:
+        kinds:
+          - Pod
+          - Deployment
+          - StatefulSet
+          - DaemonSet
+    exclude:
+      resources:
+        namespaces:
+          - argocd-system
+          - kyvervo-system
+          - metallb-system
+    validate:
+      message: "Attention : pas de CPU/memory limits définis."
+      pattern:
+        spec:
+          containers:
+          - resources:
+              limits:
+                cpu: "?*"
+                memory: "?*"
+

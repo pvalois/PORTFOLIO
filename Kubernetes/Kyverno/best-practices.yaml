@@ -1,0 +1,78 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-resource-best-practices
+spec:
+  #validationFailureAction: enforce
+  validationFailureAction: Audit
+  background: true
+  rules:
+
+    # 1. Exiger requests et limits mémoire
+    - name: validate-memory-requests-limits
+      match:
+        resources:
+          kinds:
+            - Pod
+      validate:
+        message: "Chaque conteneur doit définir memory.request et memory.limit."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    memory: "?*"
+                  limits:
+                    memory: "?*"
+
+    # 2. Interdire request == limit en CPU (pour éviter throttling systématique)
+    - name: prevent-equal-cpu-request-limit
+      match:
+        resources:
+          kinds:
+            - Pod
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.containers[].resources.limits.cpu || '' }}"
+            operator: NotEquals
+            value: ""
+      validate:
+        message: "CPU limit ne doit pas être égal à CPU request."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.containers[].resources.requests.cpu }}"
+                operator: Equals
+                value: "{{ request.object.spec.containers[].resources.limits.cpu }}"
+
+    # 3. Interdire Pods sans requests
+    - name: no-pods-without-requests
+      match:
+        resources:
+          kinds:
+            - Pod
+      validate:
+        message: "Tous les conteneurs doivent définir des requests CPU et mémoire."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+
+    # 4. Interdire les QoS BestEffort
+    - name: forbid-best-effort
+      match:
+        resources:
+          kinds:
+            - Pod
+      validate:
+        message: "Les Pods BestEffort sont interdits ; définir au minimum des requests."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.containers[].resources.requests | length(@) }}"
+                operator: Equals
+                value: 0
+

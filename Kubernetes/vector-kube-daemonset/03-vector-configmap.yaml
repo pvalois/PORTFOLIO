@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: logging
+data:
+  vector.yaml: |
+    data_dir: "/var/lib/vector"
+
+    sources:
+      logs:
+        type: file
+        include:
+          - /var/log/containers/*.log
+        ignore_older: 3600
+
+    transforms:
+      parser:
+        type: "remap"
+        inputs: ["logs"]
+        source: |
+          . = parse_json!(.message)
+
+    sinks:
+      es_cluster:
+        inputs: ["parser"]
+        type: "elasticsearch"
+        endpoints:
+          - "http://192.168.1.51:9200"
+        bulk:
+          index: "vector-%Y-%m-%d" # daily indices
+
+      es_raw:
+        inputs: ["logs"]
+        type: "elasticsearch"
+        endpoints:
+          - "http://192.168.1.51:9200"
+        bulk:
+          index: "unfiltered-vector-%Y-%m-%d" # daily indices
