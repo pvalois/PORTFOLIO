@@ -1,0 +1,6 @@
+s/#SPDX-License-Identifier/# SPDX-License-Identifier/
+/author:/s/:.*/: Pascal Valois/
+/description:/s/:.*/: System Administrator/
+/company:/s/:.*/: Pepiniere/
+/license:/s/:.*/: GPL-2.0-or-later/
+/min_ansible_version:/s/:.*/: "2.1"/
